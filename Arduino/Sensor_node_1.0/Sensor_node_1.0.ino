@@ -18,7 +18,6 @@ bool BSReady = false; // FALSE
 
 String ZigbeeData = "";
 bool ZigbeeDataAvailable = false; // FALSE
-bool SendData = false;
 
 const int flamePin = 0;
 const int smokePin = 1;
@@ -46,7 +45,7 @@ class Sensor
       alertMsg = alert;
     }
 
-    String check()
+    void check()
     {
       int readValue;
       float voltage;
@@ -63,15 +62,14 @@ class Sensor
       // sending to base station via Zigbee
       if (readValue >= 300) // 300
       {
-        return "1";
         //data += sensorPin;
         //data += ",";
         //data += currentMillis;
         //data += ",";
         //data += readValue;
         //data += "\n";
-        //Serial.print(alertMsg);
-        //Serial.print((char)13);
+        Serial.print(alertMsg);
+        Serial.print((char)13);
         //data="";
         //        Serial.print(sensorPin);
         //        Serial.print(",");
@@ -79,7 +77,6 @@ class Sensor
         //        Serial.print(",");
         //        Serial.println(voltage);
       }
-      return "0";
       //}
     }
 };
@@ -87,11 +84,9 @@ class Sensor
 int analyzeZigbeeData()
 {
   String data;
-  //String d[] = {"T",  // Test/ping by base station
-  //              "N"   // Normal operations
-  //             };
-
-  String d = "#A*";
+  String d[] = {"T",  // Test/ping by base station
+                "N"   // Normal operations
+               };
 
   int type = -1; // command or response and which specifically?
   // type < 0 means not yet determined
@@ -102,18 +97,11 @@ int analyzeZigbeeData()
 
   if (data != NULL)
   {
-    int i = 1;
-    if(d == data)i=0;
-    
-    
-    if(i==0)SendData = true;
-    else SendData = false;
-    
     //Serial.println("data: " + data);
     //Serial.println(data.length());
 
     /*** Analyze the string here ****/
-   /* if (type < 0)
+    if (type < 0)
     {
       for (int c = 0; c < 2; c++)
       {
@@ -126,7 +114,7 @@ int analyzeZigbeeData()
           break;
         }
       }
-    }*/
+    }
 
     //    if (type < 0)
     //    {
@@ -162,7 +150,6 @@ void setup() {
 }
 
 void loop() {
-  String statusF, statusS;
   //  char in;
   //  if (Serial.available() > 0)
   //  {
@@ -178,33 +165,21 @@ void loop() {
   //    }
   //  }
 
-  //if (BSReady)
-  //{
-   // flame.check();
-  //  smoke.check();
-    //delay(100);
-  //}
-
   if (ZigbeeDataAvailable)
   {
     // analyze Zigbee data here
     //Serial.println(ZigbeeData);
-    //zPerform(analyzeZigbeeData());
-    analyzeZigbeeData();
-    if(SendData)
-    {
-      statusF = flame.check();
-      statusS = smoke.check();  
-
-      Serial.print("#A"+statusF+statusS+"*");
-    }
+    zPerform(analyzeZigbeeData());
     ZigbeeData = "";
     ZigbeeDataAvailable = false;
-    SendData = false;
   }
 
-  
-
+  if (BSReady)
+  {
+    flame.check();
+    smoke.check();
+    //delay(100);
+  }
 }
 
 void serialEvent()
@@ -214,7 +189,7 @@ void serialEvent()
   {
     in = (char)Serial.read();
 
-    if (in == '*')
+    if (in == 13)
     {
       ZigbeeDataAvailable = true;
     }
