@@ -21,7 +21,7 @@ void loop() {
   if(currentMillis-prevMillis>999)
   {
     Serial.println("Request\n");
-    Serial2.print("#A*");  
+    Serial2.print("#A*");
     prevMillis=currentMillis;
   }
 }

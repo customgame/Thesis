@@ -1,8 +1,8 @@
 /* Zigbee variables */
 
 bool ZigbeeReady = false;
-String ZigbeeData = "";
-bool ZigbeeDataAvailable = false;
+String zigbeeData = "";
+bool zigbeeDataAvailable = false;
 
 class Zigbee
 {
@@ -14,22 +14,16 @@ class Zigbee
 
     String listn()
     {
-      String data;
+      String data="";
 
-      if (ZigbeeDataAvailable)
+      if (zigbeeDataAvailable)
       {
-        // analyze Zigbee data here
-        //        Serial2.print("You replied \"");
-        //        Serial2.print(ZigbeeData);
-        //        Serial2.print("\"");
-        //        Serial2.print((char)13);
-        //zPerform(analyzeZigbeeData());
-        data = ZigbeeData;
-        ZigbeeData = "";
-        ZigbeeDataAvailable = false;
-        return data;
-        //while(1);
+        data = zigbeeData;
+        zigbeeData = "";
+        zigbeeDataAvailable = false;
       }
+      
+      return data;
     }
 
     void pingSN()
@@ -54,7 +48,7 @@ class Zigbee
       // type < 10 are responses
       // type > 9 are commands
 
-      data = ZigbeeData;
+      data = zigbeeData;
 
       if (data != NULL)
       {

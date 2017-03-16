@@ -26,6 +26,7 @@ class SIM900
       Serial1.begin(baudRate); // GSM serial port
       // setup GSM here
       powerUpGSM();
+      
     }
 
     void setGSMUp()
@@ -306,9 +307,9 @@ class SIM900
       }
     }
 
-    boolean isReportConfirmed()
-    {
-      return 
-    }
+//    boolean isReportConfirmed()
+//    {
+//      return 
+//    }
 };
 

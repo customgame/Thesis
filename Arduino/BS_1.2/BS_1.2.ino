@@ -33,5 +33,5 @@ bool debugMode = false;
 bool BSReady = false;
 
 /*
- * CONTINUE with line 165
+ * CONTINUE with function setGSMUp() in BS_1.2_GSM
  */
