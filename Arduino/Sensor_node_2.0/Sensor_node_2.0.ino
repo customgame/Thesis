@@ -8,6 +8,9 @@
    A0: Flame sensor
    A1: Smoke sensor
 */
+#define LIMIT 10  // Sensor voltage threshold
+#define FLAMELEDPIN 8 // Pin connection of Flame LED indicator
+#define SMOKELEDPIN NULL  // Pin connection of Smoke LED indicator
 
 String zigbeeData = ""; // Storage for data from zigbee
 bool zigbeeDataAvailable = false; // Flag for zigbee data availability
@@ -20,12 +23,15 @@ int prevStatusF = 0, // previous Flame sensor status
 
 class Sensor
 {
-    int sensorPin;  // Storage of pin# where the sensor is connected to
+    int sensorPin,  // Storage of pin# where the sensor is connected to
+        ledPin; // Storage of pin# where the LED indicator is connected to
 
   public:
-    Sensor(int pin) // Constructor
+    Sensor(int pin, int led) // Constructor
     {
       sensorPin = pin;  // Store pin to sensorPin
+      ledPin = led; // Store led to ledPin
+      pinMode(ledPin,OUTPUT);
     }
 
     int check() // Checks current output value of the sensor
@@ -35,7 +41,7 @@ class Sensor
 
       readValue = analogRead(sensorPin);  // Read and store current output value of the sensor
 
-      if (readValue >= 300) // If voltage is greater than or equal to 300
+      if (readValue >= LIMIT) // If voltage is greater than or equal to 300
       {
         stat = 1; // Set status to HIGH
       }
@@ -46,6 +52,23 @@ class Sensor
 
       return stat;  // Return status
     }
+
+    void updateSensorLED()
+    {
+      int readValue;  // Storage for Analog In value
+
+      readValue = analogRead(sensorPin);  // Read and store current output value of the sensor
+
+      if (readValue >= LIMIT) // If voltage is greater than or equal to 300
+      {
+        digitalWrite(ledPin, HIGH); // Turn LED on
+      }
+      else  // If voltage is lesser than 300
+      {
+        digitalWrite(ledPin, LOW); // Turn LED off
+      }
+    }
+
 };
 
 bool idMatches()  // Function which compares data with Sensor node ID
@@ -81,14 +104,16 @@ bool statusChanged(int currentStatusF, int currentStatusS)  // Function which de
   return statusChanged; // Return statusChanged flag
 }
 
-Sensor flame(flamePin);  // Create flame object - Flame sensor
-Sensor smoke(smokePin);  // Create smoke object - Smoke sensor
+Sensor flame(flamePin, FLAMELEDPIN);  // Create flame object - Flame sensor
+Sensor smoke(smokePin, SMOKELEDPIN);  // Create smoke object - Smoke sensor
 
-void setup() {
+void setup()  // Run once
+{
   Serial.begin(38400);  // Set baud rate for Zigbee
 }
 
-void loop() {
+void loop() // Main loop
+{
   int currentStatusF,  // current Flame sensor status
       currentStatusS;  // current Smoke sensor status
   String packet;  // storage for packet to be sent to Base Station
@@ -102,8 +127,12 @@ void loop() {
       if (statusChanged(currentStatusF, currentStatusS))  // If there is any change in statuses
       {
         packet = "#A";  // Initialize packet with header and Sensor node ID
-        packet += currentStatusF; // Add flame sensor status to packet
-        packet += currentStatusF; // Add smoke sensor status to packet
+        //packet += (char)currentStatusF; // Add flame sensor status to packet
+        if (currentStatusF)packet += "1";
+        else packet += "0";
+        if (currentStatusS)packet += "1";
+        else packet += "0";
+        //packet += (char)currentStatusF; // Add smoke sensor status to packet
         packet += "*";  // Add trailer to packet
         Serial.print(packet); // Send packet to Base Station
       }
@@ -111,16 +140,18 @@ void loop() {
     zigbeeData = "";  // Reset data var
     zigbeeDataAvailable = false;  // Reset data flag
   }
+
+  flame.updateSensorLED();  // Update LED of Flame sensor
 }
 
-void serialEvent()
+void serialEvent()  // Serial interrupt
 {
-  char in;
-  if (Serial.available() > 0)
+  char in;  // Storage for incoming character
+  if (Serial.available() > 0) // If there is any incoming data
   {
-    in = (char)Serial.read();
-    zigbeeData += in;
-    if ((in == '*') && (zigbeeData.length() == 3))
+    in = (char)Serial.read(); // Read and store incoming data
+    zigbeeData += in; // Add incoming character to zigbeeData string
+    if ((in == '*') && (zigbeeData.length() == 3))  // If incoming character is '*' &&
     {
       zigbeeDataAvailable = true;
     }

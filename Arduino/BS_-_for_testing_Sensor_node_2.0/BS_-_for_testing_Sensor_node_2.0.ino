@@ -20,6 +20,7 @@ void loop() {
   currentMillis=millis();
   if(currentMillis-prevMillis>999)
   {
+    Serial.println("Request\n");
     Serial2.print("#A*");  
     prevMillis=currentMillis;
   }
@@ -32,11 +33,11 @@ void serialEvent2()
   {
     in = (char)Serial2.read();
     zigbeeData += in;
-    if ((in == '*') && (zigbeeData.length() == 4))
+    if ((in == '*') && (zigbeeData.length() == 5))
     {
       zigbeeDataAvailable = true;
     }
-    else if ((in == '*') && (zigbeeData.length() != 4))
+    else if ((in == '*') && (zigbeeData.length() != 5))
     {
       zigbeeData = "";
     }
